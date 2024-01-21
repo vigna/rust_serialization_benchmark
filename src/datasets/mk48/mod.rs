@@ -42,6 +42,7 @@ use crate::{generate_vec, Generate};
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
+#[cfg_attr(feature = "epserde", derive(epserde::Epserde), repr(C), zero_copy)]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
 #[cfg_attr(
     feature = "rkyv",
@@ -61,7 +62,7 @@ use crate::{generate_vec, Generate};
 #[cfg_attr(feature = "alkahest", derive(alkahest::Schema))]
 #[cfg_attr(feature = "savefile", derive(savefile_derive::Savefile))]
 #[cfg_attr(feature = "nanoserde", derive(nanoserde::SerBin, nanoserde::DeBin))]
-#[repr(u8)]
+#[cfg_attr(not(feature = "epserde"), repr(u8))]
 pub enum EntityType {
     #[cfg_attr(feature = "bitcode", bitcode_hint(frequency = 2.14))]
     ArleighBurke,
@@ -274,6 +275,7 @@ fn generate_velocity(rng: &mut impl Rng) -> i16 {
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
+#[cfg_attr(feature = "epserde", derive(epserde::Epserde), repr(C), zero_copy)]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
 #[cfg_attr(
     feature = "rkyv",
@@ -384,6 +386,7 @@ impl alkahest::Pack<Transform> for Transform {
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
+#[cfg_attr(feature = "epserde", derive(epserde::Epserde), repr(C), zero_copy)]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
 #[cfg_attr(
     feature = "rkyv",
@@ -476,6 +479,7 @@ impl alkahest::Pack<Guidance> for Guidance {
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
+#[cfg_attr(feature = "epserde", derive(epserde::Epserde))]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
 #[cfg_attr(
     feature = "rkyv",
@@ -682,6 +686,7 @@ impl alkahest::Pack<ContactSchema> for &'_ Contact {
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
+#[cfg_attr(feature = "epserde", derive(epserde::Epserde))]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
 #[cfg_attr(
     feature = "rkyv",
@@ -700,10 +705,10 @@ impl alkahest::Pack<ContactSchema> for &'_ Contact {
 #[cfg_attr(feature = "speedy", derive(speedy::Readable, speedy::Writable))]
 #[cfg_attr(feature = "savefile", derive(savefile_derive::Savefile))]
 #[cfg_attr(feature = "nanoserde", derive(nanoserde::SerBin, nanoserde::DeBin))]
-pub struct TerrainUpdate {
+pub struct TerrainUpdate<V = Vec<u8>> {
     #[cfg_attr(feature = "bitcode", bitcode_hint(gamma))]
     chunk_id: (i8, i8),
-    data: Vec<u8>,
+    data: V,
 }
 
 impl TerrainUpdate {
@@ -806,6 +811,7 @@ impl alkahest::Pack<TerrainUpdateSchema> for &'_ TerrainUpdate {
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
+#[cfg_attr(feature = "epserde", derive(epserde::Epserde))]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
 #[cfg_attr(
     feature = "rkyv",
@@ -824,12 +830,12 @@ impl alkahest::Pack<TerrainUpdateSchema> for &'_ TerrainUpdate {
 #[cfg_attr(feature = "speedy", derive(speedy::Readable, speedy::Writable))]
 #[cfg_attr(feature = "savefile", derive(savefile_derive::Savefile))]
 #[cfg_attr(feature = "nanoserde", derive(nanoserde::SerBin, nanoserde::DeBin))]
-pub struct Update {
-    pub contacts: Vec<Contact>,
+pub struct Update<C = Vec<Contact>, U = Vec<TerrainUpdate>> {
+    pub contacts: C,
     #[cfg_attr(feature = "bitcode", bitcode_hint(expected_range = "0..5000"))]
     pub score: u32,
     pub world_radius: f32,
-    pub terrain_updates: Vec<TerrainUpdate>,
+    pub terrain_updates: U,
 }
 
 impl Generate for Update {
@@ -963,6 +969,7 @@ impl alkahest::Pack<UpdateSchema> for &'_ Update {
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
+#[cfg_attr(feature = "epserde", derive(epserde::Epserde))]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
 #[cfg_attr(
     feature = "rkyv",
@@ -981,8 +988,8 @@ impl alkahest::Pack<UpdateSchema> for &'_ Update {
 #[cfg_attr(feature = "speedy", derive(speedy::Readable, speedy::Writable))]
 #[cfg_attr(feature = "savefile", derive(savefile_derive::Savefile))]
 #[cfg_attr(feature = "nanoserde", derive(nanoserde::SerBin, nanoserde::DeBin))]
-pub struct Updates {
-    pub updates: Vec<Update>,
+pub struct Updates<V = Vec<Update>> {
+    pub updates: V,
 }
 
 #[cfg(feature = "rkyv")]

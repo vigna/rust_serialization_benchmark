@@ -24,6 +24,8 @@ use rust_serialization_benchmark::bench_ciborium;
 use rust_serialization_benchmark::bench_databuf;
 #[cfg(feature = "dlhn")]
 use rust_serialization_benchmark::bench_dlhn;
+#[cfg(feature = "epserde")]
+use rust_serialization_benchmark::bench_epserde;
 #[cfg(feature = "flatbuffers")]
 use rust_serialization_benchmark::bench_flatbuffers;
 #[cfg(feature = "msgpacker")]
@@ -136,6 +138,13 @@ fn bench_log(c: &mut Criterion) {
 
     #[cfg(feature = "dlhn")]
     bench_dlhn::bench(BENCH, c, &data);
+
+    #[cfg(feature = "epserde")]
+    bench_epserde::bench(BENCH, c, &data, |data| {
+        for log in &data.logs {
+            black_box(log.address);
+        }
+    });
 
     #[cfg(feature = "flatbuffers")]
     bench_flatbuffers::bench(
@@ -308,6 +317,13 @@ fn bench_mesh(c: &mut Criterion) {
 
     #[cfg(feature = "dlhn")]
     bench_dlhn::bench(BENCH, c, &data);
+
+    #[cfg(feature = "epserde")]
+    bench_epserde::bench(BENCH, c, &data, |data| {
+        for triangle in data.triangles {
+            black_box(triangle.v0);
+        }
+    });
 
     #[cfg(feature = "flatbuffers")]
     bench_flatbuffers::bench(
@@ -562,6 +578,7 @@ fn bench_minecraft_savedata(c: &mut Criterion) {
 
 fn bench_mk48(c: &mut Criterion) {
     use rust_serialization_benchmark::datasets::mk48::Updates;
+    use rust_serialization_benchmark::datasets::mk48::Update;
 
     const BENCH: &'static str = "mk48";
 
@@ -572,7 +589,7 @@ fn bench_mk48(c: &mut Criterion) {
     let mut rng = Lcg64Xsh32::new(STATE, STREAM);
 
     const UPDATES: usize = 1000;
-    let data = Updates {
+    let data = Updates::<Vec<Update>> {
         updates: generate_vec(&mut rng, UPDATES..UPDATES + 1),
     };
 
@@ -628,6 +645,13 @@ fn bench_mk48(c: &mut Criterion) {
 
     #[cfg(feature = "dlhn")]
     bench_dlhn::bench(BENCH, c, &data);
+
+    #[cfg(feature = "epserde")]
+    bench_epserde::bench(BENCH, c, &data, |data| {
+        for update in &data.updates {
+            black_box(update.score);
+        }
+    });
 
     #[cfg(feature = "flatbuffers")]
     bench_flatbuffers::bench(

@@ -20,6 +20,8 @@ pub mod bench_cbor4ii;
 pub mod bench_ciborium;
 #[cfg(feature = "databuf")]
 pub mod bench_databuf;
+#[cfg(feature = "epserde")]
+pub mod bench_epserde;
 #[cfg(feature = "dlhn")]
 pub mod bench_dlhn;
 #[cfg(feature = "flatbuffers")]

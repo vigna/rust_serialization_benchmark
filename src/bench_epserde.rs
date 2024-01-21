@@ -1,10 +1,10 @@
-use epserde::prelude::*;
 use criterion::{black_box, Criterion};
+use epserde::prelude::*;
 
 pub fn bench<T, R>(name: &'static str, c: &mut Criterion, data: &T, read: R)
 where
     T: Serialize + Deserialize + Clone,
-    R: Fn(&T),
+    R: Fn(&<T as DeserializeInner>::DeserType<'_>),
 {
     const BUFFER_LEN: usize = 50_000_000;
 
@@ -14,29 +14,21 @@ where
     group.bench_function("serialize", |b| {
         b.iter(|| {
             buffer.clear();
-            unsafe {
-                T::serialize(data, black_box(&mut buffer)).unwrap();
-                black_box(());
-            }
+            black_box(T::serialize(data, &mut buffer)).unwrap();
         })
     });
 
-    group.bench_function("access", |b| {
-        b.iter(|| unsafe {
-            black_box(T::deserialize_eps(black_box(buffer.as_ref())).unwrap());
-        })
-    });
-/* 
-    group.bench_function("read (unvalidated)", |b| {
-        b.iter(|| unsafe {
-            read(black_box(T::deserialize_eps(buffer.as_ref()).unwrap()));
-            black_box(());
-        })
-    });
-*/
-    group.bench_function("deserialize (unvalidated)", |b| {
+    group.bench_function("deserialize (validated)", |b| {
         b.iter(|| {
-            black_box(T::deserialize_eps(black_box(buffer.as_ref())).unwrap());
+            black_box(T::deserialize_eps(buffer.as_ref()).unwrap());
+        })
+    });
+
+    let t = T::deserialize_eps(buffer.as_ref()).unwrap();
+
+    group.bench_function("read (from deser)", |b| {
+        b.iter(|| {
+            black_box(read(&t));
         })
     });
 
