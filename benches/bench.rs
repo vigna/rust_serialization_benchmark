@@ -373,7 +373,9 @@ fn bench_mesh(c: &mut Criterion) {
         &data,
         |mesh| {
             for triangle in mesh.triangles.iter() {
-                black_box(&triangle.normal);
+                black_box(triangle.v0.x);
+                black_box(triangle.v0.y);
+                black_box(triangle.v0.z);
             }
         },
         |mut mesh| {
